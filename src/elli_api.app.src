@@ -1,0 +1,24 @@
+{application, elli_api,
+ [{description, "Build Elli based API with ease"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications,
+   [kernel,
+    stdlib,
+    compiler,
+    syntax_tools,
+    lager,
+    jiffy,
+    elli,
+    elli_cookie,
+    uuid
+   ]},
+  {env,[
+        {http_server_port, <<"8089">>},
+        {http_server_host, <<"127.0.0.1">>}
+  ]},
+  {modules, []},
+  {maintainers, []},
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.

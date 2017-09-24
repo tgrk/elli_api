@@ -1,0 +1,3 @@
+:name "elli_api"
+:lib-dirs '("deps" "." "test")
+:project-include-dirs '("include"))

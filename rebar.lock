@@ -1,0 +1,28 @@
+{"1.1.0",
+[{<<"covertool">>,{pkg,<<"rebar_covertool">>,<<"1.0.0">>},0},
+ {<<"elli">>,{pkg,<<"elli">>,<<"2.0.1">>},0},
+ {<<"elli_cookie">>,{pkg,<<"elli_cookie">>,<<"0.2.9">>},0},
+ {<<"eunit_formatters">>,{pkg,<<"eunit_formatters">>,<<"0.3.1">>},0},
+ {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.9">>},1},
+ {<<"jiffy">>,{pkg,<<"jiffy">>,<<"0.14.11">>},0},
+ {<<"lager">>,{pkg,<<"lager">>,<<"3.2.4">>},0},
+ {<<"meck">>,{pkg,<<"meck">>,<<"0.8.7">>},0},
+ {<<"nested">>,
+  {git,"https://github.com/odo/nested",
+       {ref,"07f3344ce1df2ea7a03000b6292322b2c6393b2c"}},
+  0},
+ {<<"quickrand">>,{pkg,<<"quickrand">>,<<"1.6.0">>},1},
+ {<<"uuid">>,{pkg,<<"uuid_erl">>,<<"1.6.0">>},0}]}.
+[
+{pkg_hash,[
+ {<<"covertool">>, <<"D7B8D264B2C83B5FD766FEEF0E53C32E03606295A3797EC6F7016BDB047BD0EC">>},
+ {<<"elli">>, <<"A4DF67A5FB223DAA37FB7080B262CB7BEB9F2B673B5172AF331FE8D8C26B5268">>},
+ {<<"elli_cookie">>, <<"CD3F65747FA14487F5A993FD525C52D668BCD580E048C52A3CFD6EA0859B7D52">>},
+ {<<"eunit_formatters">>, <<"7A6FC351EB5B873E2356B8852EB751E20C13A72FBCA03393CF682B8483509573">>},
+ {<<"goldrush">>, <<"F06E5D5F1277DA5C413E84D5A2924174182FB108DABB39D5EC548B27424CD106">>},
+ {<<"jiffy">>, <<"919A87D491C5A6B5E3BBC27FAFEDC3A0761CA0B4C405394F121F582FD4E3F0E5">>},
+ {<<"lager">>, <<"A6DEB74DAE7927F46BD13255268308EF03EB206EC784A94EAF7C1C0F3B811615">>},
+ {<<"meck">>, <<"EBAD16CA23F685B07AED3BC011EFFF65FBAF28881A8ADF925428EF5472D390EE">>},
+ {<<"quickrand">>, <<"33A277A639C442D77AB5C1EEA4641A49E3F034FD13658BB57E192A6E083FE77D">>},
+ {<<"uuid">>, <<"1BA81515EEB37EEB7F1563B658E30CDF18BCAF1FD6A390BBF3838461753E69D8">>}]}
+].
