@@ -13,9 +13,20 @@
 %% API exports
 -export([ options/2
 
-        , response/3
-        , raw_response/4
+        , ok/3
+        , created/2
+        , no_content/2
+        , bad_request/2
+        , bad_request/3
+        , unauthorized/3
+        , forbidden/2
+        , not_found/2
+        , conflict/2
+        , internal_error/2
 
+        , raw/4
+
+        , to_json/1
         , is_json/1
         , has_header/2
         , header/1
@@ -25,31 +36,45 @@
 %%====================================================================
 %% API functions
 %%====================================================================
--spec response(#req{}, list(), atom() | tuple()) -> tuple().
-response(Req, Headers, {ok, Response}) ->
-    raw_response(Req, 200, Headers, Response);
-response(Req, Headers, created) ->
-    raw_response(Req, 201, Headers, <<>>);
-response(Req, Headers, no_content) ->
-    raw_response(Req, 204, Headers, <<>>);
-response(Req, Headers, {error, bad_request}) ->
-    raw_response(Req, 400, Headers, <<"Bad Request">>);
-response(Req, Headers, {error, bad_request, Reason}) ->
-    raw_response(Req, 400, Headers, Reason);
-response(Req, Headers, {error, unauthorized, ErrorObject}) ->
-    raw_response(Req, 401, Headers, ErrorObject);
-response(Req, Headers, {error, forbidden}) ->
-    raw_response(Req, 403, Headers, <<"Forbidden">>);
-response(Req, Headers, {error, not_found}) ->
-    raw_response(Req, 404, Headers, <<"Not Found">>);
-response(Req, Headers, {error, confict}) ->
-    raw_response(Req, 409, Headers, <<"Conflict">>);
-response(Req, Headers, {error, internal_error}) ->
-    raw_response(Req, 500, Headers, <<"Internal Server Error">>);
-response(Req, Headers, {error, unknown}) ->
-    raw_response(Req, 500, Headers, <<"Internal Server Error">>);
-response(Req, Headers, error) ->
-    raw_response(Req, 400, Headers, <<"Bad Request">>).
+-spec ok(#req{}, list(), tuple()) -> tuple().
+ok(Req, Headers, {ok, Response}) ->
+    raw(Req, 200, Headers, Response).
+
+-spec created(#req{}, list()) -> tuple().
+created(Req, Headers) ->
+    raw(Req, 201, Headers, <<>>).
+
+-spec no_content(#req{}, list()) -> tuple().
+no_content(Req, Headers) ->
+    raw(Req, 204, Headers, <<>>).
+
+-spec bad_request(#req{}, list()) -> tuple().
+bad_request(Req, Headers) ->
+    raw(Req, 400, Headers, <<"Bad Request">>).
+
+-spec bad_request(#req{}, list(), map()) -> tuple().
+bad_request(Req, Headers, ErrorObject) ->
+    raw(Req, 400, Headers, to_json(ErrorObject)).
+
+-spec unauthorized(#req{}, list(), map()) -> tuple().
+unauthorized(Req, Headers, ErrorObject) ->
+    raw(Req, 401, Headers, to_json(ErrorObject)).
+
+-spec forbidden(#req{}, list()) -> tuple().
+forbidden(Req, Headers) ->
+    raw(Req, 403, Headers, <<"Forbidden">>).
+
+-spec not_found(#req{}, list()) -> tuple().
+not_found(Req, Headers) ->
+    raw(Req, 404, Headers, <<"Not Found">>).
+
+-spec conflict(#req{}, list()) -> tuple().
+conflict(Req, Headers) ->
+    raw(Req, 409, Headers, <<"Conflict">>).
+
+-spec internal_error(#req{}, list()) -> tuple().
+internal_error(Req, Headers) ->
+    raw(Req, 500, Headers, <<"Internal Server Error">>).
 
 -spec options(#req{}, list()) -> tuple().
 options(Req, AllowedMethods) ->
@@ -63,16 +88,20 @@ options(Req, AllowedMethods) ->
         , {<<"Access-Control-Allow-Credentials">>,
            <<"X-PINGOTHER">>}
         ],
-    raw_response(Req, 200, Headers, <<>>).
+    raw(Req, 200, Headers, <<>>).
 
--spec raw_response(#req{}, pos_integer(), list(), binary()) -> tuple().
-raw_response(Req, Code, Headers, Body) ->
+-spec raw(#req{}, pos_integer(), list(), binary()) -> tuple().
+raw(Req, Code, Headers, Body) ->
     case is_json(Headers) of
         true ->
             {Code, [header(allow_origin) | Headers], jiffy:encode(Body)};
         false ->
             {Code, [header(allow_origin) | Headers], Body}
     end.
+
+-spec to_json(any()) -> binary().
+to_json(Struct) ->
+    jiffy:encode(Struct).
 
 -spec is_json(list()) -> boolean().
 is_json(Headers) ->
