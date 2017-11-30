@@ -4,9 +4,9 @@
 %%% Helper for handling API responses
 %%% @end
 %%%----------------------------------------------------------------------------
--module(elli_api_resp).
+-module(ellija_resp).
 
--include("elli_api.hrl").
+-include("ellija.hrl").
 -include_lib("elli/include/elli.hrl").
 
 
@@ -80,10 +80,8 @@ internal_error(Req, Headers) ->
 options(Req, AllowedMethods) ->
     Headers =
         [ header(allow_origin)
-        , {<<"Access-Control-Allow-Methods">>,
-           format_methods(AllowedMethods)}
-        , {<<"Access-Control-Allow-Headers">>,
-           <<"Authorization, X-Requested-With, Accept, Origin, "
+        , {<<"Access-Control-Allow-Methods">>, format_methods(AllowedMethods)}
+        , {<<"Access-Control-Allow-Headers">>, <<"Authorization, X-Requested-With, Accept, Origin, "
              "Content-Type, Content-Encoding">>}
         , {<<"Access-Control-Allow-Credentials">>,
            <<"X-PINGOTHER">>}
@@ -91,7 +89,7 @@ options(Req, AllowedMethods) ->
     raw(Req, 200, Headers, <<>>).
 
 -spec raw(#req{}, pos_integer(), list(), binary()) -> tuple().
-raw(Req, Code, Headers, Body) ->
+raw(_Req, Code, Headers, Body) ->
     case is_json(Headers) of
         true ->
             {Code, [header(allow_origin) | Headers], jiffy:encode(Body)};
@@ -119,14 +117,14 @@ header(content_type_json) ->
 
 -spec header(atom(), binary() | any()) -> tuple().
 header(allow_credentials, Value) ->
-    {<<"Access-Control-Allow-Credentials">>, elli_api_utils:to_bin(Value)};
+    {<<"Access-Control-Allow-Credentials">>, ellija_utils:to_bin(Value)};
 header(content_type, Value) ->
-    {<<"Content-Type">>, elli_api_utils:to_bin(Value)};
+    {<<"Content-Type">>, ellija_utils:to_bin(Value)};
 header(allow_origin, Value) ->
-    {<<"Access-Control-Allow-Origin">>, elli_api_utils:to_bin(Value)}.
+    {<<"Access-Control-Allow-Origin">>, ellija_utils:to_bin(Value)}.
 
 %%====================================================================
 %% Internal functions
 %%====================================================================
 format_methods(Methods) ->
-    string:join([elli_api_utils:to_list(M) || M <- Methods], ", ").
+    string:join([ellija_utils:to_list(M) || M <- Methods], ", ").

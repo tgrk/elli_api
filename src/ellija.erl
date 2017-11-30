@@ -1,18 +1,25 @@
 %%%----------------------------------------------------------------------------
-%%% @author Martin Wiso <martin@wiso.cz>
 %%% @doc
-%%% Helper for mapping data into JSON response
+%%% Main API
 %%% @end
 %%%----------------------------------------------------------------------------
--module(elli_api_json_mapper).
+
+-module(ellija).
+
+-include("ellija.hrl").
 
 %% API exports
--export([]).
+-export([start/1]).
 
 %%====================================================================
 %% API functions
 %%====================================================================
 
+start() ->
+    start(8089).
+
+start(Config) ->
+    ellija_sup:start_server(Config#config.port).
 
 %%====================================================================
 %% Internal functions

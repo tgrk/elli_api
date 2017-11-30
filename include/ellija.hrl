@@ -1,9 +1,4 @@
-%% lager helpers
--define(info,    lager:info).
--define(debug,   lager:debug).
--define(warning, lager:warning).
--define(error,   lager:error).
--define(alert,   lager:alert).
+-define(APP, ellija).
 
 %% type conversion helpers
 -define(i2l(I),  integer_to_list(I)).
@@ -22,3 +17,12 @@
 -define(l2a(L),  list_to_atom(L)).
 -define(l2f(L),  list_to_float(L)).
 -define(io2b(L), iolist_to_binary(L)).
+
+-record(config, {
+                    host       :: binary(),
+                    port       :: pos_integer(),
+                    headers    :: list(),
+                    routes     :: list(),
+                    middleware :: map()
+                }
+).

@@ -1,4 +1,4 @@
-elli_api
+ellija
 =====
 
 NOTE: this is work in progress!!
@@ -18,7 +18,7 @@ of building HTTP API applications (HTTP JSON API or REST API) using Erlang.
 
 # Build
 ```erlang
-$ rebar3 compile
+$rebar3 compile
 ```
 
 # Usage

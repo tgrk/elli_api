@@ -4,9 +4,9 @@
 %%% Helper for handling API requests
 %%% @end
 %%%----------------------------------------------------------------------------
--module(elli_api_req).
+-module(ellija_req).
 
--include("elli_api.hrl").
+-include("ellija.hrl").
 -include_lib("elli/include/elli.hrl").
 
 %% API exports
@@ -15,9 +15,9 @@
 
         , get_method/1
 
-        , http_flatten_args/1
-        , http_args/1
-]).
+        , to_qs_args/1
+        , parse_args/1
+        ]).
 
 %%====================================================================
 %% API functions
@@ -37,16 +37,16 @@ parse_header_value(Headers, Key) ->
 get_method(Req) ->
     ?a2b(elli_request:method(Req)).
 
--spec http_flatten_args(list({any(), any()}) | map()) -> string().
-http_flatten_args(Args) when is_map(Args) ->
-    http_flatten_args(maps:to_list(Args));
-http_flatten_args(Args) ->
+-spec to_qs_args(list({any(), any()}) | map()) -> string().
+to_qs_args(Args) when is_map(Args) ->
+    to_qs_args(maps:to_list(Args));
+to_qs_args(Args) ->
     string:join(
-        [ab_utils:to_list(K) ++ "=" ++ http_uri:encode(ab_utils:to_list(V))
-         || {K, V} <- Args], "&").
+      [ellija_utils:to_list(K) ++ "=" ++ http_uri:encode(ab_utils:to_list(V))
+       || {K, V} <- Args], "&").
 
--spec http_args(#req{}) -> list().
-http_args(Req) ->
+-spec parse_args(#req{}) -> list().
+parse_args(Req) ->
     case elli_request:method(Req) of
         'GET'     -> elli_request:get_args_decoded(Req);
         'DELETE'  -> elli_request:get_args_decoded(Req);

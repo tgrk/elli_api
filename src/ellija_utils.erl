@@ -4,9 +4,9 @@
 %%% Shared utilities
 %%% @end
 %%%----------------------------------------------------------------------------
--module(elli_api_utils).
+-module(ellija_utils).
 
--include("elli_api.hrl").
+-include("ellija.hrl").
 -include_lib("elli/include/elli.hrl").
 
 %% API exports

@@ -7,10 +7,7 @@
  {<<"jiffy">>,{pkg,<<"jiffy">>,<<"0.14.11">>},0},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.2.4">>},0},
  {<<"meck">>,{pkg,<<"meck">>,<<"0.8.7">>},0},
- {<<"nested">>,
-  {git,"https://github.com/odo/nested",
-       {ref,"07f3344ce1df2ea7a03000b6292322b2c6393b2c"}},
-  0},
+ {<<"nested">>,{pkg,<<"nested">>,<<"0.1.2">>},0},
  {<<"quickrand">>,{pkg,<<"quickrand">>,<<"1.6.0">>},1},
  {<<"uuid">>,{pkg,<<"uuid_erl">>,<<"1.6.0">>},0}]}.
 [
@@ -23,6 +20,7 @@
  {<<"jiffy">>, <<"919A87D491C5A6B5E3BBC27FAFEDC3A0761CA0B4C405394F121F582FD4E3F0E5">>},
  {<<"lager">>, <<"A6DEB74DAE7927F46BD13255268308EF03EB206EC784A94EAF7C1C0F3B811615">>},
  {<<"meck">>, <<"EBAD16CA23F685B07AED3BC011EFFF65FBAF28881A8ADF925428EF5472D390EE">>},
+ {<<"nested">>, <<"D411ABF7FDB6D6BCAC4A0E0769705649870E1046A98899001C282351E57C038D">>},
  {<<"quickrand">>, <<"33A277A639C442D77AB5C1EEA4641A49E3F034FD13658BB57E192A6E083FE77D">>},
  {<<"uuid">>, <<"1BA81515EEB37EEB7F1563B658E30CDF18BCAF1FD6A390BBF3838461753E69D8">>}]}
 ].
