@@ -5,7 +5,8 @@
   {mod, { ellija_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    elli
    ]},
   {env,[]},
   {modules, []},
