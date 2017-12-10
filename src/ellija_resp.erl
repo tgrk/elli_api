@@ -13,10 +13,20 @@
 %% API exports
 -export([ options/2
 
+        , ok/2
+        , created/1
+        , no_content/1
+        , bad_request/1
+        , bad_request/2
+        , unauthorized/2
+        , forbidden/1
+        , not_found/1
+        , conflict/1
+        , internal_error/1
+
         , ok/3
         , created/2
         , no_content/2
-        , bad_request/2
         , bad_request/3
         , unauthorized/3
         , forbidden/2
@@ -36,6 +46,51 @@
 %%====================================================================
 %% API functions
 %%====================================================================
+
+-spec ok(#req{}, tuple()) -> tuple().
+ok(Req, {ok, Response}) ->
+    ok(Req, [], Response).
+
+-spec created(#req{}) -> tuple().
+created(Req) ->
+    created(Req, []).
+
+-spec no_content(#req{}) -> tuple().
+no_content(Req) ->
+    no_content(Req, []).
+
+-spec forbidden(#req{}) -> tuple().
+forbidden(Req) ->
+    forbidden(Req, []).
+
+-spec not_found(#req{}) -> tuple().
+not_found(Req) ->
+    not_found(Req, []).
+
+-spec conflict(#req{}) -> tuple().
+conflict(Req) ->
+    conflict(Req, []).
+
+-spec internal_error(#req{}) -> tuple().
+internal_error(Req) ->
+    internal_error(Req).
+
+-spec bad_request(#req{}, map() | list()) -> tuple().
+bad_request(Req, Headers) when is_list(Headers) ->
+    raw(Req, 400, Headers, <<"Bad Request">>);
+bad_request(Req, ErrorObject) when is_map(ErrorObject) ->
+    bad_request(Req, [], ErrorObject).
+
+-spec unauthorized(#req{}, list() | map()) -> tuple().
+unauthorized(Req, Headers) when is_list(Headers) ->
+    raw(Req, 401, Headers, <<"Unauthorized">>);
+unauthorized(Req, ErrorObject) when is_map(ErrorObject) ->
+    unauthorized(Req, [], ErrorObject).
+
+-spec bad_request(#req{}) -> tuple().
+bad_request(Req) ->
+    bad_request(Req, []).
+
 -spec ok(#req{}, list(), tuple()) -> tuple().
 ok(Req, Headers, {ok, Response}) ->
     raw(Req, 200, Headers, Response).
@@ -47,10 +102,6 @@ created(Req, Headers) ->
 -spec no_content(#req{}, list()) -> tuple().
 no_content(Req, Headers) ->
     raw(Req, 204, Headers, <<>>).
-
--spec bad_request(#req{}, list()) -> tuple().
-bad_request(Req, Headers) ->
-    raw(Req, 400, Headers, <<"Bad Request">>).
 
 -spec bad_request(#req{}, list(), map()) -> tuple().
 bad_request(Req, Headers, ErrorObject) ->
@@ -89,6 +140,8 @@ options(Req, AllowedMethods) ->
     raw(Req, 200, Headers, <<>>).
 
 -spec raw(#req{}, pos_integer(), list(), binary()) -> tuple().
+raw(_Req, Code, [], Body) ->
+    raw(_Req, Code, ellija_config:get(headers), Body);
 raw(_Req, Code, Headers, Body) ->
     case is_json(Headers) of
         true ->
@@ -107,7 +160,7 @@ is_json(Headers) ->
 
 -spec has_header(list(), binary()) -> boolean().
 has_header(Headers, Key) ->
-    proplistS:get_value(Key, Headers, <<>>) =/= <<>>.
+    proplists:get_value(Key, Headers, <<>>) =/= <<>>.
 
 -spec header(atom()) -> tuple().
 header(allow_origin) ->
