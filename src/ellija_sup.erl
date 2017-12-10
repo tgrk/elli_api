@@ -30,23 +30,22 @@
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
--spec start_server(pos_integer()) -> pid() | {error, term()}.
+-spec start_server(pos_integer()) -> {ok, pid()} | {error, term()}.
 start_server(Port) ->
-    case supervisor:start_child(?MODULE, elli_specs(Port)) of
+    case supervisor:start_child(?MODULE, make_elli_specs(Port)) of
         {error, Reason} ->
             {error, {unable_to_start_server, Reason}};
         {ok, Pid} ->
-            Pid
+            {ok, Pid}
     end.
 
 -spec stop_server() -> ok | {error, term()}.
 stop_server() ->
-    Port = ellija_config:get(port),
-    case supervisor:terminate_child(?MODULE, elli_specs(Port)) of
+    case supervisor:terminate_child(?MODULE, elli) of
         ok ->
-            supervisor:delete_child(?MODULE, elli_specs(Port));
+            supervisor:delete_child(?MODULE, elli);
         Error ->
-                Error
+            Error
     end.
 
 %%====================================================================
@@ -61,13 +60,13 @@ init([]) ->
 %% Internal functions
 %%====================================================================
 
-elli_specs(Port) when Port >= 80 ->
+make_elli_specs(Port) when Port >= 80 ->
     Opts = [{callback,      elli_middleware},
             {callback_args, elli_middlewares()},
             {port,          Port}],
     {elli, {elli, start_link, [Opts]}, permanent, 5000, worker, []};
-elli_specs(_) ->
-    elli_specs(8089).
+make_elli_specs(_) ->
+    make_elli_specs(8089).
 
 %%TODO: use built in middlewares
 elli_middlewares() ->
