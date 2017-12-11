@@ -15,7 +15,9 @@
 -endif.
 
 %% API
--export([handle/2, handle_event/3]).
+-export([ handle/2
+        , handle_event/3
+        ]).
 
 %%%============================================================================
 %%% API functions
@@ -26,10 +28,9 @@ handle(Req, _Args) ->
         handle(elli_request:method(Req), elli_request:path(Req), Req)
     catch
         Class:Reason ->
-            {ok, Headers} = ellija_config:get(headers),
             error_logger:error_msg("Unhandled REST API ~p: ~p: ~p",
                 [Class, Reason, erlang:get_stacktrace()]),
-            ellija_resp:internal_error(Req, Headers)
+            ellija_resp:internal_error()
     end.
 
 handle_event(_, _, _) ->
@@ -44,13 +45,12 @@ handle(Method, Path, Req) ->
     Headers = ellija_config:get(headers),
     Routes  = ellija_config:get(routes),
 
-    error_logger:info_msg("verb=~s, path=~p, routes=~p~n", [Verb, Path, Routes]),
     case match_handler(Routes, Verb, Path) of
         {ok, Handler, Params} ->
             Handler(Req, Params);
         {error, not_found} ->
-            io:format("other=~p~n", [Path]),
-            ellija_resp:not_found(Req, Headers)
+            io:format("Not found=~p~n", [Path]),
+            ellija_resp:not_found(Headers)
     end.
 
 match_handler([], _Verb, _ReqPath) ->
@@ -78,7 +78,7 @@ match_path(_, _, _Acc) ->
 
 split_path(<<"/">>) -> [];
 split_path(Path) ->
-    binary:split(Path, [<<"/">>], [global]).
+    binary:split(Path, [<<"/">>], [global, trim_all]).
 
 convert_method('GET')     -> get;
 convert_method('POST')    -> post;

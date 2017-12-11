@@ -109,7 +109,7 @@ make_default_headers() ->
 make_default_route() ->
     {get, <<"/">>, fun default_handler/2, []}.
 
-default_handler(Req, _Params) ->
+default_handler(_Req, _Params) ->
     ellija_resp:ok(
-        Req, make_default_headers(), {ok, <<"Hello, World!">>}
+        make_default_headers(), {ok, <<"Hello, World!">>}
     ).

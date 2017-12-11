@@ -9,32 +9,31 @@
 -include("ellija.hrl").
 -include_lib("elli/include/elli.hrl").
 
-
 %% API exports
--export([ options/2
+-export([ options/1
+
+        , ok/1
+        , created/0
+        , no_content/0
+        , bad_uest/0
+        , bad_uest/1
+        , unauthorized/1
+        , forbidden/0
+        , not_found/0
+        , conflict/0
+        , internal_error/0
 
         , ok/2
         , created/1
         , no_content/1
-        , bad_request/1
-        , bad_request/2
+        , bad_uest/2
         , unauthorized/2
         , forbidden/1
         , not_found/1
         , conflict/1
         , internal_error/1
 
-        , ok/3
-        , created/2
-        , no_content/2
-        , bad_request/3
-        , unauthorized/3
-        , forbidden/2
-        , not_found/2
-        , conflict/2
-        , internal_error/2
-
-        , raw/4
+        , raw/3
 
         , to_json/1
         , is_json/1
@@ -47,102 +46,102 @@
 %% API functions
 %%====================================================================
 
--spec ok(#req{}, tuple()) -> tuple().
-ok(Req, {ok, Response}) ->
-    ok(Req, [], Response).
+-spec ok(tuple()) -> tuple().
+ok(Response) ->
+    ok([], Response).
 
--spec created(#req{}) -> tuple().
-created(Req) ->
-    created(Req, []).
+-spec created() -> tuple().
+created() ->
+    created([]).
 
--spec no_content(#req{}) -> tuple().
-no_content(Req) ->
-    no_content(Req, []).
+-spec no_content() -> tuple().
+no_content() ->
+    no_content([]).
 
--spec forbidden(#req{}) -> tuple().
-forbidden(Req) ->
-    forbidden(Req, []).
+-spec forbidden() -> tuple().
+forbidden() ->
+    forbidden([]).
 
--spec not_found(#req{}) -> tuple().
-not_found(Req) ->
-    not_found(Req, []).
+-spec not_found() -> tuple().
+not_found() ->
+    not_found([]).
 
--spec conflict(#req{}) -> tuple().
-conflict(Req) ->
-    conflict(Req, []).
+-spec conflict() -> tuple().
+conflict() ->
+    conflict([]).
 
--spec internal_error(#req{}) -> tuple().
-internal_error(Req) ->
-    internal_error(Req).
+-spec internal_error() -> tuple().
+internal_error() ->
+    internal_error().
 
--spec bad_request(#req{}, map() | list()) -> tuple().
-bad_request(Req, Headers) when is_list(Headers) ->
-    raw(Req, 400, Headers, <<"Bad Request">>);
-bad_request(Req, ErrorObject) when is_map(ErrorObject) ->
-    bad_request(Req, [], ErrorObject).
+-spec bad_uest(map() | list()) -> tuple().
+bad_uest(Headers) when is_list(Headers) ->
+    raw(400, Headers, <<"Bad uest">>);
+bad_uest(ErrorObject) when is_map(ErrorObject) ->
+    bad_uest([], ErrorObject).
 
--spec unauthorized(#req{}, list() | map()) -> tuple().
-unauthorized(Req, Headers) when is_list(Headers) ->
-    raw(Req, 401, Headers, <<"Unauthorized">>);
-unauthorized(Req, ErrorObject) when is_map(ErrorObject) ->
-    unauthorized(Req, [], ErrorObject).
+-spec unauthorized(list() | map()) -> tuple().
+unauthorized(Headers) when is_list(Headers) ->
+    raw(401, Headers, <<"Unauthorized">>);
+unauthorized(ErrorObject) when is_map(ErrorObject) ->
+    unauthorized([], ErrorObject).
 
--spec bad_request(#req{}) -> tuple().
-bad_request(Req) ->
-    bad_request(Req, []).
+-spec bad_uest() -> tuple().
+bad_uest() ->
+    bad_uest([]).
 
--spec ok(#req{}, list(), tuple()) -> tuple().
-ok(Req, Headers, {ok, Response}) ->
-    raw(Req, 200, Headers, Response).
+-spec ok(list(), tuple()) -> tuple().
+ok(Headers, {ok, Response}) ->
+    raw(200, Headers, Response).
 
--spec created(#req{}, list()) -> tuple().
-created(Req, Headers) ->
-    raw(Req, 201, Headers, <<>>).
+-spec created(list()) -> tuple().
+created(Headers) ->
+    raw(201, Headers, <<>>).
 
--spec no_content(#req{}, list()) -> tuple().
-no_content(Req, Headers) ->
-    raw(Req, 204, Headers, <<>>).
+-spec no_content(list()) -> tuple().
+no_content(Headers) ->
+    raw(204, Headers, <<>>).
 
--spec bad_request(#req{}, list(), map()) -> tuple().
-bad_request(Req, Headers, ErrorObject) ->
-    raw(Req, 400, Headers, to_json(ErrorObject)).
+-spec bad_uest(list(), map()) -> tuple().
+bad_uest(Headers, ErrorObject) ->
+    raw(400, Headers, to_json(ErrorObject)).
 
--spec unauthorized(#req{}, list(), map()) -> tuple().
-unauthorized(Req, Headers, ErrorObject) ->
-    raw(Req, 401, Headers, to_json(ErrorObject)).
+-spec unauthorized(list(), map()) -> tuple().
+unauthorized(Headers, ErrorObject) ->
+    raw(401, Headers, to_json(ErrorObject)).
 
--spec forbidden(#req{}, list()) -> tuple().
-forbidden(Req, Headers) ->
-    raw(Req, 403, Headers, <<"Forbidden">>).
+-spec forbidden(list()) -> tuple().
+forbidden(Headers) ->
+    raw(403, Headers, <<"Forbidden">>).
 
--spec not_found(#req{}, list()) -> tuple().
-not_found(Req, Headers) ->
-    raw(Req, 404, Headers, <<"Not Found">>).
+-spec not_found(list()) -> tuple().
+not_found(Headers) ->
+    raw(404, Headers, <<"Not Found">>).
 
--spec conflict(#req{}, list()) -> tuple().
-conflict(Req, Headers) ->
-    raw(Req, 409, Headers, <<"Conflict">>).
+-spec conflict(list()) -> tuple().
+conflict(Headers) ->
+    raw(409, Headers, <<"Conflict">>).
 
--spec internal_error(#req{}, list()) -> tuple().
-internal_error(Req, Headers) ->
-    raw(Req, 500, Headers, <<"Internal Server Error">>).
+-spec internal_error(list()) -> tuple().
+internal_error(Headers) ->
+    raw(500, Headers, <<"Internal Server Error">>).
 
--spec options(#req{}, list()) -> tuple().
-options(Req, AllowedMethods) ->
+-spec options(list()) -> tuple().
+options(AllowedMethods) ->
     Headers =
         [ header(allow_origin)
         , {<<"Access-Control-Allow-Methods">>, format_methods(AllowedMethods)}
-        , {<<"Access-Control-Allow-Headers">>, <<"Authorization, X-Requested-With, Accept, Origin, "
+        , {<<"Access-Control-Allow-Headers">>, <<"Authorization, X-uested-With, Accept, Origin, "
              "Content-Type, Content-Encoding">>}
         , {<<"Access-Control-Allow-Credentials">>,
            <<"X-PINGOTHER">>}
         ],
-    raw(Req, 200, Headers, <<>>).
+    raw(200, Headers, <<>>).
 
--spec raw(#req{}, pos_integer(), list(), binary()) -> tuple().
-raw(_Req, Code, [], Body) ->
-    raw(_Req, Code, ellija_config:get(headers), Body);
-raw(_Req, Code, Headers, Body) ->
+-spec raw(pos_integer(), list(), binary()) -> tuple().
+raw(Code, [], Body) ->
+    raw(Code, ellija_config:get(headers), Body);
+raw(Code, Headers, Body) ->
     case is_json(Headers) of
         true ->
             {Code, [header(allow_origin) | Headers], jiffy:encode(Body)};

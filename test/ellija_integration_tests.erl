@@ -1,6 +1,6 @@
 %%%----------------------------------------------------------------------------
 %%% @doc
-%%% Main integration test
+%%% Main API integration test
 %%% @end
 %%%----------------------------------------------------------------------------
 -module(ellija_integration_tests).
@@ -11,6 +11,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 %% =============================================================================
+
 ellija_integration_test_() ->
     {setup,
         fun() ->
@@ -26,6 +27,7 @@ ellija_integration_test_() ->
     }.
 
 %% =============================================================================
+
 test_default_endpoint() ->
     RequestFun = fun() -> http_request("http://localhost:8089/") end,
 
@@ -38,18 +40,21 @@ test_default_endpoint() ->
 
 test_basic_routing() ->
     Config = #{routes => [
-        {get, <<"/list">>, fun (Req, _) -> ellija_resp:ok(Req, {ok, <<"list">>}) end, []},
-        {get, <<"/list/:id">>, fun (Req, [1]) -> ellija_resp:ok(Req, {ok, <<"detail:1">>}) end, []}
+        {get, <<"/list">>, fun (_Req, _) -> ellija_resp:ok({ok, <<"list">>}) end, []},
+        {get, <<"/list/:id">>, fun (_Req, Params) -> ellija_resp:ok({ok, <<"detail:1">>}) end, []}
     ]},
     assert_server_start(Config),
 
+    ?assert(length(ellija_config:get(routes)) == 2),
+
     RequestFun = fun(Path) -> http_request("http://localhost:8089/" ++ Path) end,
     ?assertMatch({ok, {200, _, "list"}}, RequestFun("list")),
-    ?assertMatch({ok, {200, _, "detail:1"}}, RequestFun("detail/1")),
+    ?assertMatch({ok, {200, _, "detail:1"}}, RequestFun("list/1")),
 
     ?assert(true).
 
 %% =============================================================================
+
 http_request(Url) ->
     handle_http_response(httpc:request(Url)).
 
