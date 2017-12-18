@@ -36,24 +36,31 @@
 %% API functions
 %%====================================================================
 
+-spec start_link() -> {ok, pid()} | ignore | {error, term()}.
 start_link() ->
   gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
+-spec get() -> map().
 get() ->
     gen_server:call(?MODULE, get).
 
+-spec get(atom()) -> any().
 get(Key) ->
   gen_server:call(?MODULE, {get, Key}).
 
+-spec set(atom(), any()) -> ok.
 set(Key, Value) ->
     gen_server:call(?MODULE, {set, Key, Value}).
 
+-spec set(map()) -> ok.
 set(Config) ->
     gen_server:call(?MODULE, {set, Config}).
 
+-spec merge(map()) -> ok.
 merge(Config) ->
     gen_server:call(?MODULE, {merge, Config}).
 
+-spec stop() -> ok.
 stop() ->
   gen_server:cast(?MODULE, stop).
 
