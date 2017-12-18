@@ -15,8 +15,8 @@
         , ok/1
         , created/0
         , no_content/0
-        , bad_uest/0
-        , bad_uest/1
+        , bad_request/0
+        , bad_request/1
         , unauthorized/1
         , forbidden/0
         , not_found/0
@@ -26,7 +26,7 @@
         , ok/2
         , created/1
         , no_content/1
-        , bad_uest/2
+        , bad_request/2
         , unauthorized/2
         , forbidden/1
         , not_found/1
@@ -74,11 +74,11 @@ conflict() ->
 internal_error() ->
     internal_error().
 
--spec bad_uest(map() | list()) -> tuple().
-bad_uest(Headers) when is_list(Headers) ->
+-spec bad_request(map() | list()) -> tuple().
+bad_request(Headers) when is_list(Headers) ->
     raw(400, Headers, <<"Bad uest">>);
-bad_uest(ErrorObject) when is_map(ErrorObject) ->
-    bad_uest([], ErrorObject).
+bad_request(ErrorObject) when is_map(ErrorObject) ->
+    bad_request([], ErrorObject).
 
 -spec unauthorized(list() | map()) -> tuple().
 unauthorized(Headers) when is_list(Headers) ->
@@ -86,24 +86,26 @@ unauthorized(Headers) when is_list(Headers) ->
 unauthorized(ErrorObject) when is_map(ErrorObject) ->
     unauthorized([], ErrorObject).
 
--spec bad_uest() -> tuple().
-bad_uest() ->
-    bad_uest([]).
+-spec bad_request() -> tuple().
+bad_request() ->
+    bad_request([]).
 
 -spec ok(list(), tuple()) -> tuple().
 ok(Headers, {ok, Response}) ->
+    %TODO: location
     raw(200, Headers, Response).
 
 -spec created(list()) -> tuple().
 created(Headers) ->
+    %TODO: location
     raw(201, Headers, <<>>).
 
 -spec no_content(list()) -> tuple().
 no_content(Headers) ->
     raw(204, Headers, <<>>).
 
--spec bad_uest(list(), map()) -> tuple().
-bad_uest(Headers, ErrorObject) ->
+-spec bad_request(list(), map()) -> tuple().
+bad_request(Headers, ErrorObject) ->
     raw(400, Headers, to_json(ErrorObject)).
 
 -spec unauthorized(list(), map()) -> tuple().
@@ -120,6 +122,7 @@ not_found(Headers) ->
 
 -spec conflict(list()) -> tuple().
 conflict(Headers) ->
+    %TODO: location
     raw(409, Headers, <<"Conflict">>).
 
 -spec internal_error(list()) -> tuple().
@@ -128,6 +131,7 @@ internal_error(Headers) ->
 
 -spec options(list()) -> tuple().
 options(AllowedMethods) ->
+    %%TODO: get allowed methods from config.routes
     Headers =
         [ header(allow_origin)
         , {<<"Access-Control-Allow-Methods">>, format_methods(AllowedMethods)}
@@ -172,6 +176,8 @@ header(allow_credentials, Value) ->
     {<<"Access-Control-Allow-Credentials">>, ellija_utils:to_bin(Value)};
 header(content_type, Value) ->
     {<<"Content-Type">>, ellija_utils:to_bin(Value)};
+header(location, Uri) ->
+    {<<"Location">>, Uri};
 header(allow_origin, Value) ->
     {<<"Access-Control-Allow-Origin">>, ellija_utils:to_bin(Value)}.
 
