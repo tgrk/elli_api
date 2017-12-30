@@ -78,8 +78,8 @@ handle_call({get, Key}, _From, #state{config = C} = State) ->
   {reply, maps:get(Key, C, undefined), State};
 handle_call(get, _From, #state{config = C} = State) ->
   {reply, C, State};
-handle_call({set, Config}, _From, State) ->
-  {reply, ok, State#state{config = Config}};
+handle_call({set, Config}, _From, #state{config = C} = State) ->
+  {reply, ok, State#state{config = update_changed(C, Config)}};
 handle_call({set, Key, Value}, _From, #state{config = C} = State) ->
   {reply, ok, State#state{config = maybe_update(Key, Value, C)}};
 handle_call({merge, Config}, _From, #state{config = C} = State) ->
@@ -114,7 +114,8 @@ update_changed(Config, NewConfig) ->
   end, Config, NewConfig).
 
 maybe_update(routes, Value, Config) ->
-  maps:put(allowed_methods, extract_allowed_methods(Value), Config);
+  Config1 = maps:put(routes, Value, Config),
+  maps:put(allowed_methods, extract_allowed_methods(Value), Config1);
 maybe_update(allowed_methods, _Value, Config) ->
   Config;
 maybe_update(Key, Value, Config) ->
