@@ -24,9 +24,10 @@ ellija_integration_test_() ->
         application:stop(?APP)
       end,
       [
-          {"Default endpoint", fun test_default_endpoint/0}
-        , {"Basic routing",    fun test_basic_routing/0}
-        , {"Simple CRUD",      fun test_simple_crud/0}
+          {"Default endpoint",      fun test_default_endpoint/0}
+        , {"Basic routing",         fun test_basic_routing/0}
+        , {"Simple CRUD",           fun test_simple_crud/0}
+        , {"JSONAPI sparse fields", fun test_jsonapi_sparse_fields/0}
       ]
   }.
 
@@ -34,64 +35,146 @@ ellija_integration_test_() ->
 
 test_default_endpoint() ->
   RequestFun = fun() -> http_request("http://localhost:8089/") end,
-  ?assertMatch({ok, {200, _, "Hello, World!"}}, RequestFun()),
-  ok.
+  assert_payload(
+    200, #{<<"message">> => <<"Hello, World!">>},
+    RequestFun()
+  ).
 
 test_basic_routing() ->
+  Data = [
+    #{<<"id">> => 1, <<"title">> => <<"Hey!">>}
+  ],
   Config = #{routes => [
-      {get, <<"/list">>, fun (_Req, _) -> ellija_resp:ok({ok, <<"list">>}) end, []}
-    , {get, <<"/list/:id">>, fun (_Req, _) -> ellija_resp:ok({ok, <<"detail:1">>}) end, []}
+      {get, <<"/articles">>, fun (_Req, _) ->
+        Payload = eja_response:build(<<"articles">>, Data, #{}),
+        ellija_resp:ok({ok, Payload})
+      end, []}
+    , {get, <<"/articles/:id">>, fun (_Req, _) ->
+        Payload = eja_response:build(<<"articles">>, hd(Data), #{}),
+        ellija_resp:ok({ok, Payload})
+      end, []}
   ]},
   ?assertEqual(ok, ellija_config:set(Config)),
 
   ?assert(length(ellija_config:get(routes)) == 2),
 
   RequestFun = fun(Path) -> http_request("http://localhost:8089/" ++ Path) end,
-  ?assertMatch({ok, {200, _, "list"}}, RequestFun("list")),
-  ?assertMatch({ok, {200, _, "detail:1"}}, RequestFun("list/1")),
-  ?assertMatch({ok, {404, _, "Not Found"}}, RequestFun("foo")),
+
+  assert_payload(
+    200, Data, RequestFun("articles")
+  ),
+  assert_payload(
+    200, hd(Data), RequestFun("articles/1")
+  ),
+  assert_payload(
+    404, <<"Not Found">>, RequestFun("foo")
+  ),
 
   ok.
 
 test_simple_crud() ->
   Config = #{
     routes => [
-        {get,    <<"/list">>,     fun (_, _) -> ellija_resp:ok({ok, <<"list">>}) end, []}
-      , {post,   <<"/list">>,     fun (_, _) -> ellija_resp:created() end, []}
-      , {get,    <<"/list/:id">>, fun (_, _) -> ellija_resp:ok({ok, <<"detail:1">>}) end, []}
-      , {put,    <<"/list/:id">>, fun (_, _) -> ellija_resp:ok({ok, <<"updated:1">>}) end, []}
-      , {delete, <<"/list/:id">>, fun (_, _) -> ellija_resp:no_content() end, []}
+        {get,    <<"/articles">>,     fun (_, _) -> ellija_resp:ok({ok, <<"articles">>}) end, []}
+      , {post,   <<"/articles">>,     fun (_, _) -> ellija_resp:created() end, []}
+      , {get,    <<"/articles/:id">>, fun (_, _) -> ellija_resp:ok({ok, <<"detail:1">>}) end, []}
+      , {put,    <<"/articles/:id">>, fun (_, _) -> ellija_resp:ok({ok, <<"updated:1">>}) end, []}
+      , {delete, <<"/articles/:id">>, fun (_, _) -> ellija_resp:no_content() end, []}
   ]},
   ?assertEqual(ok, ellija_config:set(Config)),
 
   ?assert(length(ellija_config:get(routes)) == 5),
 
-  RequestFun = fun(Verb, Path) -> http_request(Verb, "http://localhost:8089/" ++ Path, []) end,
+  RequestFun = fun (get, Path) ->
+                      http_request("http://localhost:8089/" ++ Path);
+                    (Verb, Path) ->
+                      http_request(Verb, "http://localhost:8089/" ++ Path, [])
+                end,
 
-  ?assertMatch({ok, {200, _, "list"}},      RequestFun(get,    "list")),
-  ?assertMatch({ok, {201, _, _}},           RequestFun(post,   "list")),
+  ?assertMatch(
+    {ok, {200, _, <<"articles">>}},
+    RequestFun(get, "articles")
+  ),
+  ?assertMatch(
+    {ok, {201, _, _}},
+    RequestFun(post, "articles")
+  ),
 
-  ?assertMatch({ok, {200, _, "detail:1"}},  RequestFun(get,    "list/1")),
+  ?assertMatch(
+    {ok, {200, _, <<"detail:1">>}},
+    RequestFun(get, "articles/1")
+  ),
 
-  ?assertMatch({ok, {200, _, "updated:1"}}, RequestFun(put,    "list/1")),
+  ?assertMatch(
+    {ok, {200, _, <<"updated:1">>}},
+    RequestFun(put, "articles/1")
+  ),
 
-  ?assertMatch({ok, {204, _, ""}},          RequestFun(delete, "list/1")),
+  ?assertMatch(
+    {ok, {204, _, []}},
+    RequestFun(delete, "articles/1")
+  ),
+
+  ok.
+
+test_jsonapi_sparse_fields() ->
+  Config = #{
+    routes => [
+      {get, <<"/articles">>, fun (Req, _Params) ->
+        Query = eja_query:parse(ellija_req:parse_args(Req)),
+        Data = eja_data:apply(<<"articles">>, Data, Query),
+
+        ellija_resp:ok({ok, Query})
+      end, []}
+  ]},
+  ?assertEqual(ok, ellija_config:set(Config)),
+
+  Url = "articles?include=author&fields[articles]=title,body,author&fields[people]=name",
+  RequestFun = fun(Path) -> http_request("http://localhost:8089/" ++ Path) end,
+
+  ?debugFmt("result=~p", [RequestFun(Url)]),
 
   ok.
 
 %% =============================================================================
 
 http_request(Url) ->
-  handle_http_response(httpc:request(Url)).
+  http_request(get, Url).
 
-http_request(get, Url, []) ->
-  http_request(Url);
+http_request(get, Url) ->
+  handle_http_response(
+    httpc:request(get, {Url, get_jsonapi_headers()}, [{timeout, infinity}], [])
+  ).
+
 http_request(Method, Url, Payload) ->
-  Request = {Url, [], "application/json", Payload},
-  Result = httpc:request(Method, Request, [{timeout, infinity}], []),
-  handle_http_response(Result).
+  Headers = [hd(get_jsonapi_headers())],
+  Request = {Url, Headers, "application/vnd.api+json", Payload},
+  handle_http_response(
+    httpc:request(Method, Request, [{timeout, infinity}], [])
+  ).
 
 handle_http_response({ok, {{_, Status, _}, Headers, Response}}) ->
-  {ok, {Status, Headers, Response}};
+  {ok, {Status, Headers, jiffy:decode(Response, [return_maps])}};
 handle_http_response({error, _Reason} = Error) ->
   Error.
+
+get_jsonapi_headers() ->
+  [eja:get_header(content_type), eja:get_header(accept)].
+
+assert_payload(ExpectedStatus, ExpectedPayload, {ok, {Status, _, Payload}}) ->
+  ?assertEqual(ExpectedStatus, Status),
+  case is_map(Payload) andalso maps:is_key(<<"data">>, Payload) of
+    true ->
+      ?assertEqual(
+        eja_response:build(<<"articles">>, ExpectedPayload, #{}),
+        Payload
+      );
+    false ->
+      ?assertEqual(ExpectedPayload, Payload)
+  end,
+  ok;
+assert_payload(_ExpectedStatus, ExpectedReason, {error, Reason}) ->
+  ?assertEqual(ExpectedReason, Reason),
+  ok;
+assert_payload(_ExpectedStatus, _ExpectedReason, _Result) ->
+  ?assert(false).
