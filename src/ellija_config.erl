@@ -74,10 +74,10 @@ stop() ->
 init([]) ->
   {ok, #state{config = make_default_config()}}.
 
-handle_call({get, Key}, _From, #state{config = C} = State) ->
-  {reply, maps:get(Key, C, undefined), State};
 handle_call(get, _From, #state{config = C} = State) ->
   {reply, C, State};
+handle_call({get, Key}, _From, #state{config = C} = State) ->
+  {reply, maps:get(Key, C, undefined), State};
 handle_call({set, Config}, _From, #state{config = C} = State) ->
   {reply, ok, State#state{config = update_changed(C, Config)}};
 handle_call({set, Key, Value}, _From, #state{config = C} = State) ->
@@ -149,7 +149,7 @@ maybe_append(Item, List) ->
 make_default_headers() ->
   [
       ellija_resp:header(allow_origin)
-    , ellija_resp:header(content_type_json)
+    , ellija_resp:header(content_type_jsonapi)
   ].
 
 make_default_route() ->
@@ -157,7 +157,8 @@ make_default_route() ->
 
 default_handler(_Req, _Params) ->
   ellija_resp:ok(
-      make_default_headers(), {ok, <<"Hello, World!">>}
+      make_default_headers(),
+      {ok, #{<<"message">> => <<"Hello, World!">>}}
   ).
 
 %%%============================================================================

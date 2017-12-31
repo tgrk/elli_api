@@ -42,6 +42,12 @@
         , header/2
         ]).
 
+-define(JSON_CONTENT_TYPES, [
+    <<"application/vnd.api+json">>
+  , <<"application/json">>
+  , <<"text/json">>
+]).
+
 %%====================================================================
 %% API functions
 %%====================================================================
@@ -143,17 +149,17 @@ options(AllowedMethods) ->
       , {<<"Access-Control-Allow-Credentials">>,
         <<"X-PINGOTHER">>}
     ],
-raw(200, Headers, <<>>).
+  raw(200, Headers, <<>>).
 
--spec raw(pos_integer(), list(), binary()) -> tuple().
+-spec raw(pos_integer(), list(), map() | binary()) -> tuple().
 raw(Code, [], Body) ->
   raw(Code, ellija_config:get(headers), Body);
 raw(Code, Headers, Body) ->
   case is_json(Headers) of
     true ->
-      {Code, [header(allow_origin) | Headers], jiffy:encode(Body)};
+      {Code, Headers, to_json(Body)};
     false ->
-      {Code, [header(allow_origin) | Headers], Body}
+      {Code, Headers, Body}
   end.
 
 -spec to_json(any()) -> binary().
@@ -161,26 +167,36 @@ to_json(Struct) ->
   jiffy:encode(Struct).
 
 -spec is_json(list()) -> boolean().
-is_json(Headers) ->
-  has_header(Headers, <<"Contennt-Type">>, <<"application/json">>).
+is_json(Headers1) ->
+  Headers = normalize_headers(Headers1, []),
+  case proplists:get_value(<<"content-type">>, Headers) of
+    undefined ->
+      false;
+    Value ->
+      lists:member(
+        parse_significant_content_type(Value),
+        ?JSON_CONTENT_TYPES
+      )
+  end.
 
 -spec has_header(list(), binary(), binary()) -> boolean().
-has_header(Headers, Key, Value) ->
+has_header(Headers1, Key, Value) ->
+  Headers = normalize_headers(Headers1, []),
   case proplists:get_value(Key, Headers, <<>>) of
-      <<>> ->
-        false;
-      HeaderValue ->
-        case binary:match(HeaderValue, [Value]) of
-          nomatch -> false;
-          _Match  -> true
-        end
+    <<>> ->
+      false;
+    HeaderValue ->
+      case binary:match(HeaderValue, [Value]) of
+        nomatch -> false;
+        _Match  -> true
+      end
   end.
 
 -spec header(atom()) -> tuple().
 header(allow_origin) ->
   header(allow_origin, <<"*">>);
-header(content_type_json) ->
-  header(content_type, <<"application/json; charset=utf-8">>).
+header(content_type_jsonapi) ->
+  header(content_type, <<"application/vnd.api+json; charset=utf-8">>).
 
 -spec header(atom(), binary() | any()) -> tuple().
 header(allow_credentials, Value) ->
@@ -198,3 +214,10 @@ header(allow_origin, Value) ->
 
 format_methods(Methods) ->
   string:join([ellija_utils:to_list(M) || M <- Methods], ", ").
+
+normalize_headers([], Acc) -> Acc;
+normalize_headers([{K, V} | T], Acc) ->
+  normalize_headers(T, [{string:lowercase(K), V} | Acc]).
+
+parse_significant_content_type(Value) ->
+  hd(string:split(Value, ";")).

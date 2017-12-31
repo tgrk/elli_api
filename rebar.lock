@@ -2,7 +2,7 @@
 [{<<"covertool">>,{pkg,<<"rebar_covertool">>,<<"1.0.0">>},0},
  {<<"eja">>,
   {git,"https://github.com/tgrk/eja",
-       {ref,"8321566da5ef84c47516b66f199039fbe9f8e0f1"}},
+       {ref,"7dc15634d6711720e4f6dd6de0f4eebcaaa6609b"}},
   0},
  {<<"elli">>,{pkg,<<"elli">>,<<"2.0.1">>},0},
  {<<"elli_cookie">>,{pkg,<<"elli_cookie">>,<<"0.2.9">>},0},
