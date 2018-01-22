@@ -96,8 +96,11 @@ unauthorized(ErrorObject) when is_map(ErrorObject) ->
 bad_request() ->
   bad_request([]).
 
--spec ok(list(), tuple()) -> tuple().
+-spec ok(list(), tuple() | [map()]| map()) -> tuple().
 ok(Headers, {ok, Response}) ->
+  %TODO: location
+  raw(200, Headers, Response);
+ok(Headers, Response) ->
   %TODO: location
   raw(200, Headers, Response).
 
@@ -163,6 +166,8 @@ raw(Code, Headers, Body) ->
   end.
 
 -spec to_json(any()) -> binary().
+to_json([]) -> <<"[]">>;
+to_json(<<>>) -> <<>>;
 to_json(Struct) ->
   jiffy:encode(Struct).
 

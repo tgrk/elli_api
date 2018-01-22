@@ -27,7 +27,7 @@ ellija_integration_test_() ->
           {"Default endpoint",      fun test_default_endpoint/0}
         , {"Basic routing",         fun test_basic_routing/0}
         , {"Simple CRUD",           fun test_simple_crud/0}
-        , {"JSONAPI sparse fields", fun test_jsonapi_sparse_fields/0}
+        , {"JSONAPI sparse fields", fun test_jsonapi_query_args/0}
       ]
   }.
 
@@ -46,11 +46,11 @@ test_basic_routing() ->
   ],
   Config = #{routes => [
       {get, <<"/articles">>, fun (_Req, _) ->
-        Payload = eja_response:build(<<"articles">>, Data, #{}),
+        Payload = eja_response:serialize(<<"articles">>, Data, #{}),
         ellija_resp:ok({ok, Payload})
       end, []}
     , {get, <<"/articles/:id">>, fun (_Req, _) ->
-        Payload = eja_response:build(<<"articles">>, hd(Data), #{}),
+        Payload = eja_response:serialize(<<"articles">>, hd(Data), #{}),
         ellija_resp:ok({ok, Payload})
       end, []}
   ]},
@@ -117,14 +117,15 @@ test_simple_crud() ->
 
   ok.
 
-test_jsonapi_sparse_fields() ->
+test_jsonapi_query_args() ->
   Config = #{
     routes => [
       {get, <<"/articles">>, fun (Req, _Params) ->
-        Query = eja_query:parse(ellija_req:parse_args(Req)),
-        Data = eja_data:apply(<<"articles">>, Data, Query),
-
-        ellija_resp:ok({ok, Query})
+        Data = [],
+        Args = ellija_req:parse_args(Req),
+        ellija_resp:ok(
+          eja:create(<<"articles">>, Data, Args)
+        )
       end, []}
   ]},
   ?assertEqual(ok, ellija_config:set(Config)),
@@ -132,7 +133,14 @@ test_jsonapi_sparse_fields() ->
   Url = "articles?include=author&fields[articles]=title,body,author&fields[people]=name",
   RequestFun = fun(Path) -> http_request("http://localhost:8089/" ++ Path) end,
 
-  ?debugFmt("result=~p", [RequestFun(Url)]),
+  R = RequestFun(Url),
+
+  % ?assertMatch(
+  %   {ok, {200, _, #{<<"data">> => _}}},
+  %   RequestFun(Url)
+  % )
+
+  ?debugFmt("result=~p", [R]),
 
   ok.
 
@@ -153,6 +161,8 @@ http_request(Method, Url, Payload) ->
     httpc:request(Method, Request, [{timeout, infinity}], [])
   ).
 
+handle_http_response({ok, {{_, Status, _}, Headers, []}}) ->
+  {ok, {Status, Headers, []}};
 handle_http_response({ok, {{_, Status, _}, Headers, Response}}) ->
   {ok, {Status, Headers, jiffy:decode(Response, [return_maps])}};
 handle_http_response({error, _Reason} = Error) ->
@@ -166,7 +176,7 @@ assert_payload(ExpectedStatus, ExpectedPayload, {ok, {Status, _, Payload}}) ->
   case is_map(Payload) andalso maps:is_key(<<"data">>, Payload) of
     true ->
       ?assertEqual(
-        eja_response:build(<<"articles">>, ExpectedPayload, #{}),
+        eja_response:serialize(<<"articles">>, ExpectedPayload, #{}),
         Payload
       );
     false ->
