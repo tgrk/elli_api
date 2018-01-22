@@ -21,35 +21,35 @@
 %% Type conversion helpers
 -spec to_list(any()) -> string().
 to_list(B) when is_binary(B) ->
-    ?b2l(B);
+  ?b2l(B);
 to_list(N) when is_integer(N) ->
-    ?i2l(N);
+  ?i2l(N);
 to_list(A) when is_atom(A) ->
-    ?a2l(A);
+  ?a2l(A);
 to_list(L) ->
-    L.
+  L.
 
 -spec to_atom(any()) -> atom().
 to_atom(L) when is_list(L) ->
-    ?l2a(L);
+  ?l2a(L);
 to_atom(N) when is_integer(N) ->
-    ?i2a(N);
+  ?i2a(N);
 to_atom(B) when is_binary(B) ->
-    ?b2a(B);
+  ?b2a(B);
 to_atom(A) ->
-    A.
+  A.
 
 -spec to_bin(any()) -> binary().
 to_bin(undefined) ->
-    <<>>;
+  <<>>;
 to_bin(B) when is_binary(B) ->
-    B;
+  B;
 to_bin(N) when is_integer(N) ->
-    ?i2b(N);
+  ?i2b(N);
 to_bin(A) when is_atom(A) ->
-    ?a2b(A);
+  ?a2b(A);
 to_bin(L) when is_list(L) ->
-    unicode:characters_to_binary(L, utf8).
+  unicode:characters_to_binary(L, utf8).
 
 
 %%====================================================================

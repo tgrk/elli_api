@@ -20,7 +20,7 @@
 
 -define(SERVER, ?MODULE).
 -define(CHILD(I, Type, Params),
-    {I, {I, start_link, Params}, permanent, 5000, Type, [I]}).
+  {I, {I, start_link, Params}, permanent, 5000, Type, [I]}).
 
 %%====================================================================
 %% API functions
@@ -28,33 +28,33 @@
 
 -spec start_link() -> {ok, pid()} | ignore | {error, term()}.
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+  supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 -spec start_server(pos_integer()) -> {ok, pid()} | {error, term()}.
 start_server(Port) ->
-    case supervisor:start_child(?MODULE, make_elli_specs(Port)) of
-        {error, Reason} ->
-            {error, {unable_to_start_server, Reason}};
-        {ok, Pid} ->
-            {ok, Pid}
-    end.
+  case supervisor:start_child(?MODULE, make_elli_specs(Port)) of
+    {error, Reason} ->
+      {error, {unable_to_start_server, Reason}};
+    {ok, Pid} ->
+      {ok, Pid}
+  end.
 
 -spec stop_server() -> ok | {error, term()}.
 stop_server() ->
-    case supervisor:terminate_child(?MODULE, elli) of
-        ok ->
-            supervisor:delete_child(?MODULE, elli);
-        Error ->
-            Error
-    end.
+  case supervisor:terminate_child(?MODULE, elli) of
+    ok ->
+      supervisor:delete_child(?MODULE, elli);
+    Error ->
+      Error
+  end.
 
 %%====================================================================
 %% Supervisor callbacks
 %%====================================================================
 
 init([]) ->
-    ChildSpecs = [?CHILD(ellija_config, worker, [])],
-    {ok, { {one_for_all, 0, 1}, ChildSpecs} }.
+  ChildSpecs = [?CHILD(ellija_config, worker, [])],
+  {ok, { {one_for_all, 0, 1}, ChildSpecs} }.
 
 %%====================================================================
 %% Internal functions
